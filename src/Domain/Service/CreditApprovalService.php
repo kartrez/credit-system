@@ -13,11 +13,18 @@ final class CreditApprovalService
     private array $rules;
     
     /**
-     * @param CreditApprovalRuleInterface[] $rules
+     * @var CreditModifierInterface[]
      */
-    public function __construct(array $rules = [])
+    private array $modifiers;
+    
+    /**
+     * @param CreditApprovalRuleInterface[] $rules
+     * @param CreditModifierInterface[] $modifiers
+     */
+    public function __construct(array $rules = [], array $modifiers = [])
     {
         $this->rules = $rules;
+        $this->modifiers = $modifiers;
     }
     
     /**
@@ -26,6 +33,14 @@ final class CreditApprovalService
     public function addRule(CreditApprovalRuleInterface $rule): void
     {
         $this->rules[] = $rule;
+    }
+    
+    /**
+     * Добавляет новый модификатор кредита
+     */
+    public function addModifier(CreditModifierInterface $modifier): void
+    {
+        $this->modifiers[] = $modifier;
     }
     
     public function check(Client $client, Credit $credit): array
@@ -45,8 +60,8 @@ final class CreditApprovalService
         
         // Если кредит одобрен, применяем все модификации
         if ($result['approved']) {
-            foreach ($this->rules as $rule) {
-                $rule->modifyCredit($credit);
+            foreach ($this->modifiers as $modifier) {
+                $modifier->modifyCredit($credit);
             }
         }
         

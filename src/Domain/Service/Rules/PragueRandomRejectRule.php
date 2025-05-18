@@ -35,10 +35,4 @@ final class PragueRandomRejectRule implements CreditApprovalRuleInterface
     {
         return $this->failureReason;
     }
-    
-    #[\Override]
-    public function modifyCredit(Credit $credit): void
-    {
-        // Это правило не модифицирует кредит
-    }
 } 

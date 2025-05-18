@@ -6,6 +6,7 @@ use App\Domain\Entity\Client;
 use App\Domain\Entity\Credit;
 use App\Domain\Service\CreditApprovalRuleInterface;
 use App\Domain\Service\CreditApprovalService;
+use App\Domain\Service\CreditModifierInterface;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
@@ -84,11 +85,13 @@ class CreditApprovalServiceTest extends TestCase
     {
         $rule = $this->createMock(CreditApprovalRuleInterface::class);
         $rule->method('check')->willReturn(true);
-        $rule->expects($this->once())
-             ->method('modifyCredit')
-             ->with($this->credit);
         
-        $service = new CreditApprovalService([$rule]);
+        $modifier = $this->createMock(CreditModifierInterface::class);
+        $modifier->expects($this->once())
+                ->method('modifyCredit')
+                ->with($this->credit);
+        
+        $service = new CreditApprovalService([$rule], [$modifier]);
         $service->check($this->client, $this->credit);
     }
     
@@ -97,10 +100,12 @@ class CreditApprovalServiceTest extends TestCase
         $rule = $this->createMock(CreditApprovalRuleInterface::class);
         $rule->method('check')->willReturn(false);
         $rule->method('getFailureReason')->willReturn('Тестовая причина отказа');
-        $rule->expects($this->never())
-             ->method('modifyCredit');
         
-        $service = new CreditApprovalService([$rule]);
+        $modifier = $this->createMock(CreditModifierInterface::class);
+        $modifier->expects($this->never())
+                ->method('modifyCredit');
+        
+        $service = new CreditApprovalService([$rule], [$modifier]);
         $service->check($this->client, $this->credit);
     }
     
@@ -118,5 +123,21 @@ class CreditApprovalServiceTest extends TestCase
         
         $this->assertFalse($result['approved']);
         $this->assertNotEmpty($result['reasons']);
+    }
+    
+    public function testAddsModifierDynamically(): void
+    {
+        $rule = $this->createMock(CreditApprovalRuleInterface::class);
+        $rule->method('check')->willReturn(true);
+        
+        $service = new CreditApprovalService([$rule]);
+        
+        $modifier = $this->createMock(CreditModifierInterface::class);
+        $modifier->expects($this->once())
+                ->method('modifyCredit')
+                ->with($this->credit);
+        
+        $service->addModifier($modifier);
+        $service->check($this->client, $this->credit);
     }
 } 

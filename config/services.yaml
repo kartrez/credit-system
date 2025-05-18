@@ -17,7 +17,7 @@ services:
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
-            - '../src/Entity/'
+            - '../src/Domain/Entity/'
             - '../src/Kernel.php'
 
     # add more service definitions when explicit configuration is needed
@@ -32,6 +32,7 @@ services:
                 - '@App\Domain\Service\Rules\AgeApprovalRule'
                 - '@App\Domain\Service\Rules\RegionApprovalRule'
                 - '@App\Domain\Service\Rules\PragueRandomRejectRule'
+            $modifiers:
                 - '@App\Domain\Service\Rules\OstravaRateIncreaseRule'
 
     # Repositories

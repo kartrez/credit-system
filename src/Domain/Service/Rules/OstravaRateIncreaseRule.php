@@ -5,8 +5,9 @@ namespace App\Domain\Service\Rules;
 use App\Domain\Entity\Client;
 use App\Domain\Entity\Credit;
 use App\Domain\Service\CreditApprovalRuleInterface;
+use App\Domain\Service\CreditModifierInterface;
 
-class OstravaRateIncreaseRule implements CreditApprovalRuleInterface
+class OstravaRateIncreaseRule implements CreditApprovalRuleInterface, CreditModifierInterface
 {
     private const OSTRAVA_REGION = 'OS';
     private const RATE_INCREASE = 5.0; // Увеличение на 5%

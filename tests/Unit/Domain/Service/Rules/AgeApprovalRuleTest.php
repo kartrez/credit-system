@@ -84,14 +84,4 @@ class AgeApprovalRuleTest extends TestCase
         $this->assertFalse($result);
         $this->assertNotEmpty($this->rule->getFailureReason());
     }
-    
-    public function testModifyCreditDoesNothing(): void
-    {
-        $originalRate = $this->credit->getRate();
-        
-        $this->rule->modifyCredit($this->credit);
-        
-        // Правило не должно изменять кредит
-        $this->assertEquals($originalRate, $this->credit->getRate());
-    }
 } 
