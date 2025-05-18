@@ -33,26 +33,6 @@ services:
     networks:
       - credit-system-network-local
 
-  # База данных PostgreSQL
-  db-credits:
-    image: postgres:16-alpine
-    container_name: credit-system-db-local
-    environment:
-      POSTGRES_DB: credit_app
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: app
-    healthcheck:
-      test: ["CMD", "pg_isready", "-d", "credit_app", "-U", "app"]
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    volumes:
-      - credit-system-db-data-local:/var/lib/postgresql/data:rw
-    ports:
-      - "5432:5432"
-    networks:
-      - credit-system-network-local
-
 networks:
   credit-system-network-local:
     name: credit-system-network-local
