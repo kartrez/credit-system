@@ -1,0 +1,50 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # Domain services
+    App\Domain\Service\CreditApprovalService:
+        arguments:
+            $rules:
+                - '@App\Domain\Service\Rules\ScoreApprovalRule'
+                - '@App\Domain\Service\Rules\IncomeApprovalRule'
+                - '@App\Domain\Service\Rules\AgeApprovalRule'
+                - '@App\Domain\Service\Rules\RegionApprovalRule'
+                - '@App\Domain\Service\Rules\PragueRandomRejectRule'
+                - '@App\Domain\Service\Rules\OstravaRateIncreaseRule'
+
+    # Repositories
+    App\Domain\Repository\ClientRepositoryInterface:
+        class: App\Infrastructure\Repository\InMemoryClientRepository
+        
+    App\Domain\Repository\CreditRepositoryInterface:
+        class: App\Infrastructure\Repository\InMemoryCreditRepository
+
+    # Notification service
+    App\Domain\Service\NotificationServiceInterface:
+        class: App\Infrastructure\Service\LoggerNotificationService
+    
+    # Делаем DataInitializer публичным сервисом
+    App\Infrastructure\Service\DataInitializer:
+        public: true

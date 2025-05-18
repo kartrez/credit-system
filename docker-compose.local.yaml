@@ -1,0 +1,63 @@
+version: '3.8'
+
+name: credit-system-local
+
+services:
+  # Nginx - веб-сервер
+  nginx-credits:
+    image: nginx:alpine
+    container_name: credit-system-nginx-local
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/credit-system
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php-credits
+    networks:
+      - credit-system-network-local
+
+  # PHP с Symfony
+  php-credits:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: credit-system-php-local
+    volumes:
+      - ./:/var/www/credit-system
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: "postgresql://app:password@db-credits:5432/credit_app?serverVersion=16&charset=utf8"
+    depends_on:
+      - db-credits
+    networks:
+      - credit-system-network-local
+
+  # База данных PostgreSQL
+  db-credits:
+    image: postgres:16-alpine
+    container_name: credit-system-db-local
+    environment:
+      POSTGRES_DB: credit_app
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: app
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "credit_app", "-U", "app"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - credit-system-db-data-local:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+    networks:
+      - credit-system-network-local
+
+networks:
+  credit-system-network-local:
+    name: credit-system-network-local
+    driver: bridge
+
+volumes:
+  credit-system-db-data-local:
+    name: credit-system-db-data-local 

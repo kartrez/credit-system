@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="3"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="true"
+>
+    <projectFiles>
+        <directory name="src" />
+        <ignoreFiles>
+            <directory name="vendor" />
+        </ignoreFiles>
+    </projectFiles>
+    
+    <issueHandlers>
+        <!-- Игнорируем ошибки неиспользуемых классов и методов, так как они могут использоваться через DI -->
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <directory name="src/Domain/Service/Rules" />
+                <directory name="src/Infrastructure/Controller" />
+                <directory name="src/Infrastructure/Repository" />
+                <directory name="src/Infrastructure/Service" />
+            </errorLevel>
+        </UnusedClass>
+        <PossiblyUnusedMethod>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </PossiblyUnusedMethod>
+        <PossiblyUnusedProperty>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </PossiblyUnusedProperty>
+        
+        <!-- Игнорируем ошибки, связанные с Symfony -->
+        <PropertyNotSetInConstructor>
+            <errorLevel type="suppress">
+                <directory name="src/Infrastructure/Controller" />
+            </errorLevel>
+        </PropertyNotSetInConstructor>
+        
+        <!-- Игнорируем ошибки, связанные с отсутствием конструкторов -->
+        <MissingConstructor>
+            <errorLevel type="suppress">
+                <directory name="src/Application/DTO" />
+                <directory name="src/Application/Service" />
+                <directory name="src/Domain/Service" />
+                <directory name="src/Infrastructure/Service" />
+            </errorLevel>
+        </MissingConstructor>
+    </issueHandlers>
+</psalm>
