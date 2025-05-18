@@ -20,16 +20,17 @@ class ClientServiceTest extends TestCase
         $this->clientService = new ClientService($this->clientRepository);
         
         // Создаем тестовый DTO клиента
-        $this->clientDTO = new ClientDTO();
-        $this->clientDTO->name = 'Test User';
-        $this->clientDTO->age = 30;
-        $this->clientDTO->region = 'PR';
-        $this->clientDTO->city = 'Prague';
-        $this->clientDTO->income = 2000.0;
-        $this->clientDTO->score = 700;
-        $this->clientDTO->pin = 'TEST-12345';
-        $this->clientDTO->email = 'test@example.com';
-        $this->clientDTO->phone = '+42012345678';
+        $this->clientDTO = new ClientDTO(
+            name: 'Test User',
+            age: 30,
+            region: 'PR',
+            city: 'Prague',
+            income: 2000.0,
+            score: 700,
+            pin: 'TEST-12345',
+            email: 'test@example.com',
+            phone: '+42012345678'
+        );
     }
     
     public function testCreateClient(): void

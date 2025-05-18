@@ -4,20 +4,22 @@ namespace App\Infrastructure\Controller;
 
 use App\Application\DTO\ClientDTO;
 use App\Application\Service\ClientService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/clients')]
-final class ClientController extends AbstractController
+final class ClientController extends ApiController
 {
     private ClientService $clientService;
+    private ValidatorInterface $validator;
     
-    public function __construct(ClientService $clientService)
+    public function __construct(ClientService $clientService, ValidatorInterface $validator)
     {
         $this->clientService = $clientService;
+        $this->validator = $validator;
     }
     
     #[Route('', name: 'client_list', methods: ['GET'])]
@@ -40,7 +42,7 @@ final class ClientController extends AbstractController
             ];
         }
         
-        return new JsonResponse($result);
+        return $this->jsonSuccess($result);
     }
     
     #[Route('/{pin}', name: 'client_show', methods: ['GET'])]
@@ -49,7 +51,7 @@ final class ClientController extends AbstractController
         $client = $this->clientService->getClientByPin($pin);
         
         if (!$client) {
-            return new JsonResponse(['error' => 'Клиент не найден'], Response::HTTP_NOT_FOUND);
+            return $this->jsonError('Клиент не найден', [], Response::HTTP_NOT_FOUND);
         }
         
         $result = [
@@ -64,36 +66,25 @@ final class ClientController extends AbstractController
             'phone' => $client->getPhone(),
         ];
         
-        return new JsonResponse($result);
+        return $this->jsonSuccess($result);
     }
     
     #[Route('', name: 'client_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] ClientDTO $clientDTO): JsonResponse
     {
-        // Получаем данные в зависимости от Content-Type
-        $contentType = $request->headers->get('Content-Type');
-        
-        if ($contentType === 'application/json' || str_contains($contentType, 'application/json')) {
-            $data = json_decode($request->getContent(), true);
-        } else {
-            // Обрабатываем данные из формы (application/x-www-form-urlencoded)
-            $data = $request->request->all();
-        }
-        
-        if (!$data || empty($data)) {
-            return new JsonResponse(['error' => 'Неверные данные клиента'], Response::HTTP_BAD_REQUEST);
-        }
-        
-        // Проверяем обязательные поля
-        if (empty($data['pin'])) {
-            return new JsonResponse(['error' => 'Неверные данные клиента'], Response::HTTP_BAD_REQUEST);
-        }
-        
         try {
-            $clientDTO = ClientDTO::fromArray($data);
+            // Выполняем валидацию DTO
+            $violations = $this->validator->validate($clientDTO);
+            // Если есть ошибки валидации, формируем сообщение об ошибке
+            if (count($violations) > 0) {
+                $errors = $this->extractValidationErrors($violations);
+                return $this->jsonValidationError($errors);
+            }
+            
+            // Если валидация прошла успешно, создаем клиента
             $client = $this->clientService->createClient($clientDTO);
             
-            return new JsonResponse(
+            return $this->jsonSuccess(
                 [
                     'success' => true,
                     'client' => [
@@ -104,7 +95,7 @@ final class ClientController extends AbstractController
                 Response::HTTP_CREATED
             );
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError($e->getMessage());
         }
     }
 } 

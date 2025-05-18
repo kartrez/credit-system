@@ -49,3 +49,8 @@ services:
     # Делаем DataInitializer публичным сервисом
     App\Infrastructure\Service\DataInitializer:
         public: true
+
+    # Слушатель для обработки исключений и возврата JSON-ответов
+    App\Infrastructure\EventListener\JsonExceptionSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }

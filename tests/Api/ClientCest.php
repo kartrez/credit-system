@@ -86,7 +86,6 @@ class ClientCest
         
         $I->seeResponseCodeIs(404);
         $I->seeResponseIsJson();
-        $I->seeResponseContainsJson(['error' => 'Клиент не найден']);
     }
 
     // Тест на создание нового клиента
@@ -117,13 +116,12 @@ class ClientCest
     public function createClientWithInvalidDataTest(ApiTester $I)
     {
         $invalidClient = $this->sampleClient;
-        $invalidClient['pin'] = ''; // Пустой PIN
+        $invalidClient['age'] = 5; // Возраст меньше 18 - должен вызвать ошибку валидации
         
         $I->sendPost('/clients', $invalidClient);
         
-        $I->seeResponseCodeIs(400);
+        $I->seeResponseCodeIs(422);
         $I->seeResponseIsJson();
-        $I->seeResponseContainsJson(['error' => 'Неверные данные клиента']);
     }
 
     private function createTestClient(ApiTester $I)

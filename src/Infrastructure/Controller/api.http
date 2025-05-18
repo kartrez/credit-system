@@ -1,0 +1,119 @@
+### GET clients list
+GET http://localhost:8080/api/clients
+###
+
+### GET client by pin
+GET http://localhost:8080/api/clients/123-45-6789
+###
+
+### POST Create new client
+POST http://localhost:8080/api/clients
+Content-Type: application/json
+
+{
+  "name" : "Test Client",
+  "age" : 30,
+  "region" : "PR",
+  "city" : "Prague",
+  "income" : 2000,
+  "score" : 700,
+  "pin" : "TEST-12345",
+  "email" : "test@example.com",
+  "phone" : "+42012345678"
+}
+
+### POST Create client with invalid data (для проверки валидации)
+POST http://localhost:8080/api/clients
+Content-Type: application/json
+
+{
+  "name" : "Invalid Client",
+  "age" : 5,
+  "region" : "PR",
+  "city" : "Prague",
+  "income" : 2000,
+  "score" : 700,
+  "pin" : "INVALID-12345",
+  "email" : "test@example.com",
+  "phone" : "+42012345678"
+}
+
+### GET credits list
+GET http://localhost:8080/api/credits
+###
+
+### POST Create new credit
+POST http://localhost:8080/api/credits
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "2024-01-01",
+  "endDate" : "2024-12-31"
+}
+
+### POST Check credit approval (успешный случай)
+POST http://localhost:8080/api/credits/check-approval/123-45-6789
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "2024-01-01",
+  "endDate" : "2024-12-31"
+}
+
+### POST Check credit approval (неуспешный случай, клиент с низким скорингом)
+POST http://localhost:8080/api/credits/check-approval/LOW-SCORE
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "2024-01-01",
+  "endDate" : "2024-12-31"
+}
+
+### POST Issue credit (успешный случай)
+POST http://localhost:8080/api/credits/issue/TEST-12345
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "2024-01-01",
+  "endDate" : "2024-12-31"
+}
+
+### POST Issue credit (неуспешный случай, клиент с низким скорингом)
+POST http://localhost:8080/api/credits/issue/LOW-SCORE
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "2024-01-01",
+  "endDate" : "2024-12-31"
+}
+
+### POST Issue credit (валидация - некорректные даты)
+POST http://localhost:8080/api/credits/issue/TEST-12345
+Content-Type: application/json
+
+{
+  "name" : "Test Loan",
+  "amount" : 5000,
+  "rate" : 10.4,
+  "startDate" : "",
+  "endDate" : ""
+}
+
+### GET получение несуществующего клиента (проверка обработки ошибок)
+GET http://localhost:8080/api/clients/NON-EXISTENT
+###

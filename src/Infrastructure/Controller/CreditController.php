@@ -5,22 +5,27 @@ namespace App\Infrastructure\Controller;
 use App\Application\DTO\CreditDTO;
 use App\Application\Service\ClientService;
 use App\Application\Service\CreditService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/credits')]
-final class CreditController extends AbstractController
+final class CreditController extends ApiController
 {
     private CreditService $creditService;
     private ClientService $clientService;
+    private ValidatorInterface $validator;
     
-    public function __construct(CreditService $creditService, ClientService $clientService)
-    {
+    public function __construct(
+        CreditService $creditService, 
+        ClientService $clientService,
+        ValidatorInterface $validator
+    ) {
         $this->creditService = $creditService;
         $this->clientService = $clientService;
+        $this->validator = $validator;
     }
     
     #[Route('', name: 'credit_list', methods: ['GET'])]
@@ -49,23 +54,24 @@ final class CreditController extends AbstractController
             $result[] = $creditData;
         }
         
-        return new JsonResponse($result);
+        return $this->jsonSuccess($result);
     }
     
     #[Route('', name: 'credit_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] CreditDTO $creditDTO): JsonResponse
     {
-        $data = $this->getRequestData($request);
-        
-        if (!$data || empty($data)) {
-            return new JsonResponse(['error' => 'Неверные данные кредита'], Response::HTTP_BAD_REQUEST);
-        }
-        
         try {
-            $creditDTO = CreditDTO::fromArray($data);
+            // Валидация DTO
+            $violations = $this->validator->validate($creditDTO);
+            
+            if (count($violations) > 0) {
+                $errors = $this->extractValidationErrors($violations);
+                return $this->jsonValidationError($errors);
+            }
+            
             $credit = $this->creditService->createCredit($creditDTO);
             
-            return new JsonResponse(
+            return $this->jsonSuccess(
                 [
                     'success' => true,
                     'credit' => [
@@ -77,35 +83,32 @@ final class CreditController extends AbstractController
                 Response::HTTP_CREATED
             );
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError($e->getMessage());
         }
     }
     
-    #[Route('/check-approval', name: 'credit_check_approval', methods: ['POST'])]
-    public function checkApproval(Request $request): JsonResponse
+    #[Route('/check-approval/{pin}', name: 'credit_check_approval', methods: ['POST'])]
+    public function checkApproval(string $pin, #[MapRequestPayload] CreditDTO $creditDTO): JsonResponse
     {
-        $data = $this->getRequestData($request);
-        
-        if (!$data || !isset($data['client_pin']) || !isset($data['credit'])) {
-            return new JsonResponse(
-                ['error' => 'Необходимо указать PIN клиента и данные кредита'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-        
-        $client = $this->clientService->getClientByPin($data['client_pin']);
-        
+        $client = $this->clientService->getClientByPin($pin);
         if (!$client) {
-            return new JsonResponse(['error' => 'Клиент не найден'], Response::HTTP_NOT_FOUND);
+            return $this->jsonError('Клиент не найден', [], Response::HTTP_NOT_FOUND);
         }
         
         try {
-            $creditDTO = CreditDTO::fromArray($data['credit']);
+            // Валидация DTO
+            $violations = $this->validator->validate($creditDTO);
+            
+            if (count($violations) > 0) {
+                $errors = $this->extractValidationErrors($violations);
+                return $this->jsonValidationError($errors, 'Ошибка валидации данных кредита');
+            }
+            
             $credit = $this->creditService->createCredit($creditDTO);
             
             $approvalResult = $this->creditService->checkCreditApproval($client, $credit);
             
-            return new JsonResponse([
+            return $this->jsonSuccess([
                 'approved' => $approvalResult['approved'],
                 'reasons' => $approvalResult['reasons'] ?? [],
                 'client' => [
@@ -119,42 +122,39 @@ final class CreditController extends AbstractController
                 ],
             ]);
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError($e->getMessage());
         }
     }
     
-    #[Route('/issue', name: 'credit_issue', methods: ['POST'])]
-    public function issueCredit(Request $request): JsonResponse
+    #[Route('/issue/{pin}', name: 'credit_issue', methods: ['POST'])]
+    public function issueCredit(string $pin, #[MapRequestPayload] CreditDTO $creditDTO): JsonResponse
     {
-        $data = $this->getRequestData($request);
-        
-        if (!$data || !isset($data['client_pin']) || !isset($data['credit'])) {
-            return new JsonResponse(
-                ['error' => 'Необходимо указать PIN клиента и данные кредита'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-        
-        $client = $this->clientService->getClientByPin($data['client_pin']);
-        
+        $client = $this->clientService->getClientByPin($pin);
         if (!$client) {
-            return new JsonResponse(['error' => 'Клиент не найден'], Response::HTTP_NOT_FOUND);
+            return $this->jsonError('Клиент не найден', [], Response::HTTP_NOT_FOUND);
         }
         
         try {
-            $creditDTO = CreditDTO::fromArray($data['credit']);
+            // Валидация DTO
+            $violations = $this->validator->validate($creditDTO);
+            
+            if (count($violations) > 0) {
+                $errors = $this->extractValidationErrors($violations);
+                return $this->jsonValidationError($errors, 'Ошибка валидации данных кредита');
+            }
+            
             $credit = $this->creditService->createCredit($creditDTO);
             
             $issueResult = $this->creditService->issueCredit($client, $credit);
             
             if (!$issueResult['approved']) {
-                return new JsonResponse([
+                return $this->jsonSuccess([
                     'approved' => false,
                     'reasons' => $issueResult['reasons'] ?? [],
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                ]);
             }
             
-            return new JsonResponse([
+            return $this->jsonSuccess([
                 'success' => true,
                 'approved' => true,
                 'credit' => [
@@ -170,22 +170,7 @@ final class CreditController extends AbstractController
                 ],
             ]);
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
-    }
-    
-    /**
-     * Получает данные из запроса в зависимости от Content-Type
-     */
-    private function getRequestData(Request $request): array
-    {
-        $contentType = $request->headers->get('Content-Type');
-        
-        if ($contentType === 'application/json' || str_contains($contentType, 'application/json')) {
-            return json_decode($request->getContent(), true) ?? [];
-        } else {
-            // Обрабатываем данные из формы (application/x-www-form-urlencoded)
-            return $request->request->all();
+            return $this->jsonError($e->getMessage());
         }
     }
 } 
