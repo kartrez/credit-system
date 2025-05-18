@@ -27,9 +27,6 @@ services:
       - ./:/var/www/credit-system
     environment:
       APP_ENV: dev
-      DATABASE_URL: "postgresql://app:password@db-credits:5432/credit_app?serverVersion=16&charset=utf8"
-    depends_on:
-      - db-credits
     networks:
       - credit-system-network-local
 
@@ -37,7 +34,3 @@ networks:
   credit-system-network-local:
     name: credit-system-network-local
     driver: bridge
-
-volumes:
-  credit-system-db-data-local:
-    name: credit-system-db-data-local 

@@ -27,9 +27,6 @@ services:
       - ./:/var/www/credit-system
     environment:
       APP_ENV: dev
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@db-credits:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=utf8"
-    depends_on:
-      - db-credits
     networks:
       - credit-system-network
 
@@ -37,7 +34,3 @@ networks:
   credit-system-network:
     name: credit-system-network
     driver: bridge
-
-volumes:
-  credit-system-db-data:
-    name: credit-system-db-data 
