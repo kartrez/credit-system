@@ -23,7 +23,7 @@
             <directory>src</directory>
         </include>
         <exclude>
-            <directory>src/Infrastructure/Controller</directory>
+            <directory>src/Application/Controller</directory>
         </exclude>
     </source>
 </phpunit> 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infrastructure\Controller;
+namespace App\Application\Controller;
 
 use App\Application\DTO\ClientDTO;
 use App\Application\Service\ClientService;

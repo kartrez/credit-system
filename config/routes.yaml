@@ -1,6 +1,6 @@
 # Маршруты для контроллеров в инфраструктурном слое
-infrastructure_controllers:
+app_controllers:
     resource:
-        path: ../src/Infrastructure/Controller/
-        namespace: App\Infrastructure\Controller
+        path: ../src/Application/Controller/
+        namespace: App\Application\Controller
     type: attribute

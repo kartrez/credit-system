@@ -20,7 +20,7 @@
         <UnusedClass>
             <errorLevel type="suppress">
                 <directory name="src/Domain/Service/Rules" />
-                <directory name="src/Infrastructure/Controller" />
+                <directory name="src/Application/Controller" />
                 <directory name="src/Infrastructure/Repository" />
                 <directory name="src/Infrastructure/Service" />
             </errorLevel>
@@ -39,7 +39,7 @@
         <!-- Игнорируем ошибки, связанные с Symfony -->
         <PropertyNotSetInConstructor>
             <errorLevel type="suppress">
-                <directory name="src/Infrastructure/Controller" />
+                <directory name="src/Application/Controller" />
             </errorLevel>
         </PropertyNotSetInConstructor>
         
